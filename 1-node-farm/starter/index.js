@@ -1,5 +1,6 @@
 const fs = require('fs');
 const http = require('http');
+const url = require('url')
 
 
 
@@ -43,14 +44,37 @@ const http = require('http');
 /////  SERVER
 
 const data = fs.readFileSync('./dev-data/data.json','utf-8')
-const productData = JSON.parse(data);
+const dataObj = JSON.parse(data);
 
-const tempOverview = fs.readFileSync(`${__dirname}/templates/overview.html`);
-const tempProduct = fs.readFileSync(`${__dirname}/templates/product.html`);
+const tempOverview = fs.readFileSync(`${__dirname}/templates/overview.html`,'utf-8');
+const tempProduct = fs.readFileSync(`${__dirname}/templates/product.html`,'utf-8');
+const tempCard = fs.readFileSync(`${__dirname}/templates/card.html`,'utf-8');
+
+
+const replaceTemplate = function(template, element){
+    let output = template;            
+    output = output.replace(/{%PRODUCT_NAME%}/g, element.productName);
+    output = output.replace(/{%IMAGE%}/g, element.image);
+    output = output.replace(/{%FROM%}/g, element.from);
+    output = output.replace(/{%QUANTITY%}/g, element.quantity);
+    output = output.replace(/{%PRICE%}/g, element.price);
+    output = output.replace(/{%DESCRIPTION%}/g, element.description);
+    output=output.replace(/{%ID%}/g,element.id)
+    
+    if(!element.organic){
+    output = output.replace(/{%NOT_ORGANIC%}/g, 'not-organic');
+    }else{
+    output = output.replace(/{%NOT_ORGANIC%}/g, '');
+    }
+
+    return output
+}
 
 const server = http.createServer((request,response)=>{
 
-    console.log(request.url);
+
+    const {pathname,query } = url.parse(request.url,true);
+    console.log(request.url,pathname,query)
 
     // const data = fs.readFileSync('./dev-data/data.json','utf-8')
     // const productData = JSON.parse(data);
@@ -59,20 +83,40 @@ const server = http.createServer((request,response)=>{
     // const productHTML = fs.readFileSync(`${__dirname}/templates/product.html`);
 
 
-    if(request.url === '/' || request.url === '/overview'){
+    ////// OVERVIEW
+    if(pathname === '/' || pathname === '/overview'){
         response.writeHead(200,{"Content-type":"text/html"});
-        response.end(tempOverview);
+        // response.end(tempOverview);
 
-        response.end('this is OVERVIEW');
-    } else if (request.url === '/product'){
+        const cardsHTML = dataObj.map(product => replaceTemplate(tempCard,product)).join('');
+        const output = tempOverview.replace('{%PRODUCT_CARDS%}',cardsHTML)
+
+        // console.log(cardsHTML)
+
+        response.end(output);
+
+        //// PRODUCT    
+    } else if (pathname === '/product'){
+
+        const product = dataObj[query.id];
+
+        console.log(product);
+
         response.writeHead(200,{"Content-type":"text/html"});
-        response.end(tempProduct);
-    } else if (request.url === '/api'){
+        const output = replaceTemplate(tempProduct,product)
+
+        response.end(output);
+
+
+    ///// API
+    } else if (pathname === '/api'){
         response.writeHead(200,{
             "Content-type":"application/json"
         })
         response.end(data);
 
+
+    //// PAGE NOT FOUND
     }  else{
         response.writeHead(404,{
             "Content-type":"text/html",
