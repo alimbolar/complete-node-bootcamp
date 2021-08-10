@@ -18,6 +18,11 @@ const tourSchema = new mongoose.Schema(
     slug: {
       type: String
     },
+    test: {
+      type: String,
+      required: [true, 'test is required'],
+      unique: true
+    },
 
     duration: {
       type: Number,
