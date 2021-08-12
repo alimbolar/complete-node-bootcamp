@@ -20,6 +20,16 @@ const handleValidationError = function(err) {
   return new AppError(message, 400);
 };
 
+const handleJsonWebTokenError = function(err) {
+  const message = 'Invalid token : Please log in again';
+  return new AppError(message, 401);
+};
+
+const handleTokenExpiredError = function(err) {
+  const message = 'Expired token : Please log in again';
+  return new AppError(message, 401);
+};
+
 const sendErrorDev = function(err, res) {
   res.status(err.statusCode).json({
     status: err.status,
@@ -71,6 +81,12 @@ module.exports = (err, req, res, next) => {
       error = handleValidationError(error);
     }
 
+    if (error.name === 'JsonWebTokenError') {
+      error = handleJsonWebTokenError(error);
+    }
+    if (error.name === 'TokenExpiredError') {
+      error = handleTokenExpiredError(error);
+    }
     sendErrorProd(error, res);
   }
 
