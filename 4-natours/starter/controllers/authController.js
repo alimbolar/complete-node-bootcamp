@@ -41,14 +41,6 @@ exports.login = catchAsync(async function(req, res, next) {
 
   const currentUser = await User.findOne({ email }).select('+password');
 
-  console.log(currentUser);
-
-  const correct = await currentUser.correctPassword(
-    password,
-    currentUser.password
-  );
-
-  console.log('correct', correct);
   if (
     !currentUser ||
     !(await currentUser.correctPassword(password, currentUser.password))
@@ -108,6 +100,15 @@ exports.protect = catchAsync(async function(req, res, next) {
   }
 
   // GRANT ACCESS TO PROTECTED ROUTE
-  req.use = currentUser;
+  req.user = currentUser; // this is important for the next step in restrictTo()
   next();
 });
+
+exports.restrictTo = function(...roles) {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(new AppError('Not authorised to access this page', 403));
+    }
+    next();
+  };
+};
