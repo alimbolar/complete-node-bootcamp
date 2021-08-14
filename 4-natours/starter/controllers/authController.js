@@ -123,7 +123,8 @@ exports.forgotPassword = catchAsync(async function(req, res, next) {
   //generate the random Token
 
   const resetToken = user.createPasswordResetToken();
-  user.save({ validateBeforeSave: false });
+  await user.save({ validateBeforeSave: false });
+  console.log(user);
 
   //send it back as an email
 
