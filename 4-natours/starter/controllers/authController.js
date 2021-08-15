@@ -12,6 +12,15 @@ const signToken = function(id) {
   });
 };
 
+const createSendToken = function(user, statusCode, res) {
+  const token = signToken(user._id);
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    user
+  });
+};
+
 exports.signup = catchAsync(async function(req, res, next) {
   const newUser = await User.create({
     name: req.body.name,
@@ -21,15 +30,16 @@ exports.signup = catchAsync(async function(req, res, next) {
     passwordChangedAt: req.body.passwordChangedAt
   });
 
-  const token = signToken(newUser._id);
+  createSendToken(newUser, 201, res);
+  // const token = signToken(newUser._id);
 
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      user: newUser
-    }
-  });
+  // res.status(201).json({
+  //   status: 'success',
+  //   token,
+  //   data: {
+  //     user: newUser
+  //   }
+  // });
 });
 
 exports.login = catchAsync(async function(req, res, next) {
@@ -52,11 +62,13 @@ exports.login = catchAsync(async function(req, res, next) {
 
   // 3) Send token back to client
 
-  const token = signToken(currentUser._id);
-  res.status(200).json({
-    status: 'success',
-    token
-  });
+  createSendToken(currentUser, 200, res);
+
+  // const token = signToken(currentUser._id);
+  // res.status(200).json({
+  //   status: 'success',
+  //   token
+  // });
 });
 
 exports.protect = catchAsync(async function(req, res, next) {
@@ -180,10 +192,59 @@ exports.resetPassword = catchAsync(async function(req, res, next) {
   //update passwordChangedAt prooperty for the user
 
   //Log the user in by sending the JWT
+  createSendToken(user, 201, res);
+  // const token = signToken(user._id);
+  // res.status(200).json({
+  //   status: 'success',
+  //   token
+  // });
+});
 
-  const token = signToken(user._id);
-  res.status(200).json({
-    status: 'success',
-    token
-  });
+exports.updatePassword = catchAsync(async function(req, res, next) {
+  // 1.Get User From Collection
+
+  // let token;
+  // if (
+  //   req.headers.authorization &&
+  //   req.headers.authorization.startsWith('Bearer')
+  // ) {
+  //   token = req.headers.authorization.split(' ')[1];
+  // }
+
+  // if (!token) return next(new AppError('Invalid Token', 401));
+
+  // const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  console.log(req.user);
+  const user = await User.findById(req.user.id).select('+password');
+
+  // 2. Check if POSTed password is correct
+
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password)))
+    return next(new AppError('Wrong password', 401));
+
+  //3. If so, update password
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  await user.save();
+  //4. Log user in, send JWT token
+
+  createSendToken(user, 200, res);
+  // res.status(200).json({
+  //   status: 'success',
+  //   // token,
+
+  //   message: `The id of the user is ${
+  //     req.body.id
+  //   } and his password is ${await user.correctPassword(
+  //     req.body.passwordCurrent,
+  //     user.password
+  //   )} because his old password ${
+  //     req.body.passwordCurrent
+  //   } has been updated password to ${user.password} using this variable ${
+  //     req.body.password
+  //   }`,
+  //   user: user
+  // });
 });
