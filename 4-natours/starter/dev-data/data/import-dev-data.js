@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const Tour = require('./../../models/tourModel');
 
-dotenv.config({ path: './../../config.env' });
+dotenv.config({ path: './config.env' });
 
 // dotenv.config({ path: `${__dirname}/config.env` });
 
@@ -23,9 +23,7 @@ mongoose
     console.log('DB Connected');
   });
 
-const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8')
-);
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
 
 // console.log(tours);
 

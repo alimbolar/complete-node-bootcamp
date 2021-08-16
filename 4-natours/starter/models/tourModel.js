@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const User = require('./userModel');
 // const dotenv = require('dotenv');
 
 // dotenv.config({ path: `${__dirname}/config.env` });
@@ -14,16 +15,9 @@ const tourSchema = new mongoose.Schema(
       maxlength: [40, 'Max 40 characters'],
       minlength: [5, 'Min 5 characters']
     },
-
     slug: {
       type: String
     },
-    test: {
-      type: String,
-      required: [true, 'test is required'],
-      unique: true
-    },
-
     duration: {
       type: Number,
       required: [true, 'Duration is required']
@@ -85,9 +79,42 @@ const tourSchema = new mongoose.Schema(
       select: false
     },
     startDates: [Date],
-    secretTour: Boolean,
-    default: false
+    secretTour: {
+      type: Boolean,
+      default: false
+    },
+    startLocation: {
+      //GeoJSON
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point']
+      },
+      coordinates: [Number],
+      address: String,
+      description: String
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point']
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number
+      }
+    ],
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User'
+      }
+    ]
   },
+
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
@@ -98,6 +125,13 @@ tourSchema.virtual('durationInWeeks').get(function() {
   return this.duration / 7;
 });
 
+// Virtual Populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id'
+});
+
 // DOCUMENT MIDDLEWARE  - runs before save() and crete() and NOT on insertMany()
 
 // DOCUMENT MIDDLEWARE
@@ -106,6 +140,14 @@ tourSchema.pre('save', function(next) {
   // console.log(this);
   next();
 });
+
+// // EMBEDDING DOCUMENTS
+
+// tourSchema.pre('save', async function(next) {
+//   const guidesPromises = this.guides.map(async id => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
 
 // tourSchema.pre('save', function(next) {
 //   console.log('Will save document....');
@@ -129,6 +171,13 @@ tourSchema.post(/^find/, function(docs, next) {
     `Query too ${Date.now() - this.start} milliseconds `
   );
   next();
+});
+
+tourSchema.pre(/^find/, function() {
+  this.populate({
+    path: 'guides',
+    select: 'name'
+  });
 });
 
 // AGGREGATION MIDDLEWARE

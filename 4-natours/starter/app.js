@@ -4,6 +4,7 @@ const AppError = require('./utils/AppError');
 const globalErrorController = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
 
 // const Tour = require('./models/tourModel');
 
@@ -24,6 +25,7 @@ app.use((req, res, next) => {
 });
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
 app.all('*', function(req, res, next) {
   // res.status(404).json({
   //   status: 'error',
