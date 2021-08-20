@@ -16,20 +16,17 @@ const reviewSchema = new mongoose.Schema(
       type: Date,
       default: Date.now()
     },
-    tour: [
-      {
+    tour:{
         type: mongoose.Schema.ObjectId,
         ref: 'Tour',
         require: [true, 'Tour is required']
-      }
-    ],
-    user: [
-      {
+      },
+    user:{
         type: mongoose.Schema.ObjectId,
         ref: 'User',
         required: [true, 'User is required']
       }
-    ]
+  
   },
   {
     toJSON: { virtuals: true },
@@ -39,9 +36,12 @@ const reviewSchema = new mongoose.Schema(
 
 reviewSchema.pre(/^find/, function(next) {
   this.populate({
-    path: 'user',
+    path: 'tour',
     select: 'name'
-  });
+  }).populate({
+    path : 'user',
+    select : 'name'
+  })
   next();
 });
 

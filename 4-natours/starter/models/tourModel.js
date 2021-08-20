@@ -166,6 +166,15 @@ tourSchema.pre(/^find/, function(next) {
   next();
 });
 
+// tourSchema.pre(/^find/, function() {
+//   this.populate({
+//     path: 'guides',
+//     select: 'name'
+//   });
+// });
+
+
+
 tourSchema.post(/^find/, function(docs, next) {
   this.timeTaken = console.log(
     `Query too ${Date.now() - this.start} milliseconds `
@@ -173,12 +182,7 @@ tourSchema.post(/^find/, function(docs, next) {
   next();
 });
 
-tourSchema.pre(/^find/, function() {
-  this.populate({
-    path: 'guides',
-    select: 'name'
-  });
-});
+
 
 // AGGREGATION MIDDLEWARE
 

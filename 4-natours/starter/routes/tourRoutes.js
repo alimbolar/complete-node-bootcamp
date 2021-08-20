@@ -1,9 +1,15 @@
 const express = require('express');
 const tourController = require('../controllers/tourController');
+const authController = require("./../controllers/authController")
+const reviewRouter = require("./../routes/reviewRoutes")
 
 const router = express.Router();
 
 // router.param('id', tourController.checkID);
+
+// router.route('/:tourId/reviews').post(authController.protect,reviewController.createOneReview);
+
+router.use('/:tourId/reviews', reviewRouter);
 
 router
   .route('/top-5-tours')
@@ -23,5 +29,8 @@ router
   .get(tourController.getTour)
   .patch(tourController.updateTour)
   .delete(tourController.deleteTour);
+
+
+
 
 module.exports = router;
