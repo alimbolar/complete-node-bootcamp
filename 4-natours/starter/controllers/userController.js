@@ -2,17 +2,22 @@ const APIFeatures = require('./../utils/APIFeatures');
 const catchAsync = require('./../utils/catchAsync');
 const User = require('./../models/userModel');
 const AppError = require('./../utils/AppError');
+const factory = require('./handlerController');
 
-// exports.getAllUsers = (req, res) => {
-//   res.status(200).json({
-//     status: 'success',
-//     data: 'This route is yet to be defined!'
-//   });
-// };
+exports.getAllUsers = factory.getAll(User);
+exports.getUser = factory.getOne(User);
+exports.createUser = factory.createOne(User);
+exports.updateUser = factory.updateOne(User);
+exports.deleteUser = factory.deleteOne(User);
 
-const filterObj = function(obj, ...allowedFields) {
+exports.getMe = function (req, res, next) {
+  req.params.id = req.user.id;
+  next();
+};
+
+const filterObj = function (obj, ...allowedFields) {
   const newObj = {};
-  Object.keys(obj).forEach(el => {
+  Object.keys(obj).forEach((el) => {
     if (allowedFields.includes(el)) {
       newObj[el] = obj[el];
     }
@@ -21,26 +26,7 @@ const filterObj = function(obj, ...allowedFields) {
   return newObj;
 };
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  // Create Query
-  const features = new APIFeatures(User.find(), req.query)
-    .filter()
-    .sort('-duration')
-    .limitFields()
-    .paginate();
-  //Execute Query
-  const users = await features.query;
-
-  res.status(200).json({
-    status: 'success',
-    result: users.length,
-    data: {
-      users
-    }
-  });
-});
-
-exports.updateMe = catchAsync(async function(req, res, next) {
+exports.updateMe = catchAsync(async function (req, res, next) {
   // 1. Create error if user posts password data
 
   if (req.body.password || req.body.passwordConfirm)
@@ -59,57 +45,25 @@ exports.updateMe = catchAsync(async function(req, res, next) {
   // 3. Update user document
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
-    runValidators: true
+    runValidators: true,
   });
 
   res.status(200).json({
     status: 'success',
     data: {
-      user: updatedUser
-    }
+      user: updatedUser,
+    },
   });
 });
 
-exports.deleteMe = catchAsync(async function(req, res, next) {
+exports.deleteMe = catchAsync(async function (req, res, next) {
   const deletedUser = await User.findByIdAndUpdate(req.user.id, {
-    active: false
+    active: false,
   });
   res.status(204).json({
     status: 'success',
     data: {
-      user: null
-    }
+      user: null,
+    },
   });
 });
-
-exports.getUser = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    data: 'This route is yet to be defined!'
-  });
-};
-
-exports.createUser = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    data: 'This route is yet to be defined!'
-  });
-};
-
-exports.updateUser = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    data: 'This route is yet to be defined!'
-  });
-};
-
-exports.deleteUser = async (req, res, next) => {
-  const user = await User.findByIdAndDelete(req.params.id);
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      user
-    }
-  });
-};
