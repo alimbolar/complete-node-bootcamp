@@ -6,50 +6,50 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   email: {
     type: String,
     required: [true, 'Email is needed'],
     unique: true,
     lowercase: true,
-    validate: [validator.isEmail, 'Email is not valid']
+    validate: [validator.isEmail, 'Email is not valid'],
   },
   role: {
     type: String,
-    default: 'user'
+    default: 'user',
   },
   photo: {
-    type: String
+    type: String,
   },
   password: {
     type: String,
     required: [true, 'Password is needed'],
     minlength: 8,
-    select: false
+    select: false,
   },
   passwordConfirm: {
     type: String,
     required: [true, 'Please confirm password'],
     validate: {
       // This works only with save() OR create()
-      validator: function(el) {
+      validator: function (el) {
         return el === this.password;
-      }
-    }
+      },
+    },
   },
   passwordChangedAt: {
-    type: Date
+    type: Date,
   },
   passwordResetToken: String,
   passwordResetExpires: Date,
   active: {
     type: Boolean,
-    default: true
-  }
+    default: true,
+  },
 });
 
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
   this.password = await bcrypt.hash(this.password, 12);
@@ -57,26 +57,26 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.isNew) return next();
 
   this.passwordChangedAt = Date.now() - 1000;
   next();
 });
 
-userSchema.pre(/^find/, function(next) {
+userSchema.pre(/^find/, function (next) {
   this.find({ active: { $ne: false } });
   next();
 });
 
-userSchema.methods.correctPassword = async function(
+userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangedAt) {
     const changedTimeStamp = parseInt(
       this.passwordChangedAt.getTime() / 1000,
@@ -90,7 +90,7 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   return false;
 };
 
-userSchema.methods.createPasswordResetToken = function() {
+userSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString('hex');
 
   this.passwordResetToken = crypto
