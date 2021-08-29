@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const AppError = require('./utils/AppError');
@@ -5,14 +6,20 @@ const globalErrorController = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewRoutes');
 
 // const Tour = require('./models/tourModel');
 
 const app = express();
 
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
+// // app.set('views', './views');
+
 // MIDDLEWARE STACK
 app.use(express.json());
-app.use(express.static(`${__dirname}/public/`));
+app.use(express.static(path.join(__dirname, 'public')));
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -23,10 +30,12 @@ app.use((req, res, next) => {
 
   next();
 });
+
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
-app.all('*', function(req, res, next) {
+app.all('*', function (req, res, next) {
   // res.status(404).json({
   //   status: 'error',
   //   message: `This route ${req.originalUrl} does not exist!`
