@@ -136,7 +136,7 @@ tourSchema.virtual('reviews', {
   localField: '_id',
 });
 
-// DOCUMENT MIDDLEWARE  - runs before save() and crete() and NOT on insertMany()
+// DOCUMENT MIDDLEWARE  - runs before save() and create() and NOT on insertMany()
 
 // DOCUMENT MIDDLEWARE
 tourSchema.pre('save', function (next) {
@@ -170,12 +170,12 @@ tourSchema.pre(/^find/, function (next) {
   next();
 });
 
-// tourSchema.pre(/^find/, function() {
-//   this.populate({
-//     path: 'guides',
-//     select: 'name'
-//   });
-// });
+tourSchema.pre(/^find/, function () {
+  this.populate({
+    path: 'guides',
+    select: 'name photo role',
+  });
+});
 
 tourSchema.post(/^find/, function (docs, next) {
   this.timeTaken = console.log(
