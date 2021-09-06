@@ -1,6 +1,14 @@
 const Tour = require('./../models/tourModel');
 const catchAsync = require('./../utils/catchAsync');
 
+exports.getLoginForm = catchAsync(async function(req,res,next){
+  res.status(200).render('login');
+
+})
+
+
+
+
 exports.getOverview = catchAsync(async (req, res,next) => {
   // 1) Get tour data from the collection
   // 2) Build the template
@@ -35,3 +43,4 @@ exports.getTour = catchAsync(async (req, res,next) => {
         tour
     });
   });
+

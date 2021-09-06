@@ -1,5 +1,6 @@
 const path = require('path');
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const AppError = require('./utils/AppError');
 const globalErrorController = require('./controllers/errorController');
@@ -19,6 +20,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 // MIDDLEWARE STACK
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 if (process.env.NODE_ENV === 'development') {
@@ -26,8 +28,10 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.use((req, res, next) => {
-  console.log('Hello from the middleware');
-
+  console.log('Hello from the test middleware');
+  // req.requestTime = new Date().toISOString;
+  console.log(req.cookies);
+  console.log('Bye for the test middleware');
   next();
 });
 
